@@ -1,7 +1,7 @@
 FetchContent_Declare(
     mbedtls
     GIT_REPOSITORY https://github.com/ccrugoPhilips/mbedtls
-    GIT_TAG ad232020585358b88e888c11f5f5c1cfeba8d708 # v3.6.2 with patch
+    GIT_TAG df8f15b6e9917b0b66f19c23165464c08f1783f0 # v3.6.2 with patch
 )
 
 set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL On)
