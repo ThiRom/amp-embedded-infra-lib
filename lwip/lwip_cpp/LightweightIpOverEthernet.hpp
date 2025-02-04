@@ -20,7 +20,7 @@ namespace services
         LightweightIpOverEthernet(hal::EthernetMac& ethernet, netif& netInterface);
         ~LightweightIpOverEthernet();
 
-        infra::ByteRange RequestReceiveBuffer() override;
+        pbuf* RequestReceiveBuffer() override;
         void ReceivedFrame(uint32_t usedBuffers, uint32_t frameSize) override;
         void ReceivedErrorFrame(uint32_t usedBuffers, uint32_t frameSize) override;
         void SentFrame() override;

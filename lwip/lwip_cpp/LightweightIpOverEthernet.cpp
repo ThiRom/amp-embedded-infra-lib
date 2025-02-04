@@ -30,7 +30,7 @@ namespace services
             SetIgmpMacFilter(&group->group_address, NETIF_DEL_MAC_FILTER);
     }
 
-    infra::ByteRange LightweightIpOverEthernet::RequestReceiveBuffer()
+    pbuf* LightweightIpOverEthernet::RequestReceiveBuffer()
     {
         pbuf* buffer = pbuf_alloc(PBUF_RAW, LWIP_MEM_ALIGN_SIZE(PBUF_POOL_BUFSIZE), PBUF_POOL);
         if (buffer == nullptr)
@@ -39,7 +39,7 @@ namespace services
                 {
                     Subject().RetryAllocation();
                 });
-            return infra::ByteRange();
+            return buffer;
         }
 
         assert(buffer->next == nullptr);
@@ -50,7 +50,7 @@ namespace services
             currentReceiveBufferLast->next = buffer;
         currentReceiveBufferLast = buffer;
 
-        return infra::ByteRange(reinterpret_cast<uint8_t*>(buffer->payload), reinterpret_cast<uint8_t*>(buffer->payload) + buffer->len);
+        return buffer;
     }
 
     void LightweightIpOverEthernet::ReceivedFrame(uint32_t usedBuffers, uint32_t frameSize)
