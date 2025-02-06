@@ -42,7 +42,7 @@ namespace hal
     public:
         using infra::SingleObserver<EthernetMacObserver, EthernetMac>::SingleObserver;
 
-        virtual void* RequestReceiveBuffer() = 0;
+        virtual infra::ByteRange RequestReceiveBuffer() = 0;
         virtual void ReceivedFrame(uint32_t usedBuffers, uint32_t frameSize) = 0;
         virtual void ReceivedErrorFrame(uint32_t usedBuffers, uint32_t frameSize) = 0;
         virtual void SentFrame() = 0;
