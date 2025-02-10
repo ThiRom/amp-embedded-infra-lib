@@ -1,11 +1,14 @@
 #include "lwip/lwip_cpp/LightweightIpOverEthernet.hpp"
 #include "infra/event/EventDispatcher.hpp"
+#include "infra/stream/OutputStream.hpp"
+#include "infra/stream/StreamManipulators.hpp"
 #include "lwip/dhcp.h"
 #include "lwip/ethip6.h"
 #include "lwip/igmp.h"
 #include "netif/etharp.h"
 #include <cstdlib>
 #include <cstring>
+#include "services/tracer/GlobalTracer.hpp"
 
 namespace services
 {
@@ -236,6 +239,8 @@ namespace services
         netInterface.hwaddr[3] = macAddress[3];
         netInterface.hwaddr[4] = macAddress[4];
         netInterface.hwaddr[5] = macAddress[5];
+
+        services::GlobalTracer().Trace() << "macAddress: " << infra::AsHexHelper(macAddress);
 
         netInterface.mtu = 1500;
         netInterface.flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
