@@ -6,9 +6,11 @@
 #include "lwip/ethip6.h"
 #include "lwip/igmp.h"
 #include "netif/etharp.h"
+#include "services/tracer/GlobalTracer.hpp"
 #include <cstdlib>
 #include <cstring>
-#include "services/tracer/GlobalTracer.hpp"
+
+netif* netIf;
 
 namespace services
 {
@@ -17,6 +19,7 @@ namespace services
         , netInterface(netInterface)
     {
         netif_set_link_up(&netInterface);
+        netIf = &netInterface;
 
         for (auto group = netif_igmp_data(&netInterface); group != nullptr; group = group->next)
             SetIgmpMacFilter(&group->group_address, NETIF_ADD_MAC_FILTER);
@@ -58,30 +61,37 @@ namespace services
 
     void LightweightIpOverEthernet::ReceivedFrame(uint32_t usedBuffers, uint32_t frameSize)
     {
-        assert(currentReceiveBufferFirst != nullptr);
-
-        pbuf* end = currentReceiveBufferFirst;
-        end->tot_len = frameSize;
-        while (--usedBuffers != 0)
-        {
-            frameSize -= end->len;
-            end = end->next;
-        }
-
-        assert(end != nullptr);
-        end->len = frameSize;
-
-        pbuf* newBegin = end->next;
-        end->next = nullptr;
-
-        err_t err = netInterface.input(currentReceiveBufferFirst, &netInterface);
+        currentReceiveBufferFirst = (pbuf*)usedBuffers;
+        auto err = netInterface.input(currentReceiveBufferFirst, &netInterface);
 
         if (err != ERR_OK)
             pbuf_free(currentReceiveBufferFirst);
+        return;
 
-        currentReceiveBufferFirst = newBegin;
-        if (currentReceiveBufferFirst == nullptr)
-            currentReceiveBufferLast = nullptr;
+        // assert(currentReceiveBufferFirst != nullptr);
+
+        // pbuf* end = currentReceiveBufferFirst;
+        // end->tot_len = frameSize;
+        // while (--usedBuffers != 0)
+        // {
+        //     frameSize -= end->len;
+        //     end = end->next;
+        // }
+
+        // assert(end != nullptr);
+        // end->len = frameSize;
+
+        // pbuf* newBegin = end->next;
+        // end->next = nullptr;
+
+        // err_t err = netInterface.input(currentReceiveBufferFirst, &netInterface);
+
+        // if (err != ERR_OK)
+        //     pbuf_free(currentReceiveBufferFirst);
+
+        // currentReceiveBufferFirst = newBegin;
+        // if (currentReceiveBufferFirst == nullptr)
+        //     currentReceiveBufferLast = nullptr;
     }
 
     void LightweightIpOverEthernet::ReceivedErrorFrame(uint32_t usedBuffers, uint32_t frameSize)
@@ -290,5 +300,53 @@ namespace services
     err_t LightweightIpOverEthernetFactory::StaticSetIgmpMacFilter(netif* netif, const ip4_addr_t* group, netif_mac_filter_action action)
     {
         return static_cast<LightweightIpOverEthernetFactory*>(netif->state)->SetIgmpMacFilter(netif, group, action);
+    }
+}
+
+#define ETH_RX_BUFFER_SIZE 1600U
+#include "lwip/pbuf.h"
+
+extern "C"
+{
+    typedef struct alignas(32)
+    {
+        struct pbuf_custom pbuf_custom;
+        uint8_t buff[(ETH_RX_BUFFER_SIZE + 31) & ~31] ;
+
+    } RxBuff_t;
+
+    void HAL_ETH_RxLinkCallback(void** pStart, void** pEnd, uint8_t* buff, uint16_t Length)
+    {
+        struct pbuf** ppStart = (struct pbuf**)pStart;
+        struct pbuf** ppEnd = (struct pbuf**)pEnd;
+        struct pbuf* p = NULL;
+
+        /* Get the struct pbuf from the buff address. */
+        p = (struct pbuf*)(buff - offsetof(RxBuff_t, buff));
+        p->next = NULL;
+        p->tot_len = 0;
+        p->len = Length;
+
+        /* Chain the buffer. */
+        if (!*ppStart)
+        {
+            /* The first buffer of the packet. */
+            *ppStart = p;
+        }
+        else
+        {
+            /* Chain the buffer to the end of the packet. */
+            (*ppEnd)->next = p;
+        }
+        *ppEnd = p;
+
+        /* Update the total length of all the buffers of the chain. Each pbuf in the chain should have its tot_len
+         * set to its own length, plus the length of all the following pbufs in the chain. */
+        for (p = *ppStart; p != NULL; p = p->next)
+        {
+            p->tot_len += Length;
+        }
+
+        /* Invalidate data cache because Rx DMA's writing to physical memory makes it stale. */
     }
 }
