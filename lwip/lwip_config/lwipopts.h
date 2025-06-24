@@ -17,7 +17,7 @@ extern "C"
 #define LWIP_DHCP_CHECK_LINK_UP 1
 #define LWIP_AUTOIP 1
 #define LWIP_DHCP_AUTOIP_COOP 1
-#define LWIP_DNS 1
+#define LWIP_DNS 0
 #define LWIP_RAW 0
 #define LWIP_IGMP 1
 uint32_t StaticLwIpRand();
