@@ -45,6 +45,15 @@ uint32_t StaticLwIpRand();
 
 #define LWIP_DHCP_AUTOIP_COOP_TRIES 5
 
+// #define LWIP_DEBUG
+// #define TCP_DEBUG                       LWIP_DBG_ON
+// #define ETHARP_DEBUG                    LWIP_DBG_OFF
+// #define PBUF_DEBUG                      LWIP_DBG_OFF
+// #define IP_DEBUG                        LWIP_DBG_ON
+// #define TCPIP_DEBUG                     LWIP_DBG_ON
+// #define DHCP_DEBUG                      LWIP_DBG_ON
+// #define UDP_DEBUG                       LWIP_DBG_OFF
+
 #ifdef __cplusplus
 }
 #endif
