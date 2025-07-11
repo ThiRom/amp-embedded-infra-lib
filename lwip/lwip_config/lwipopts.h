@@ -27,7 +27,8 @@ uint32_t StaticLwIpRand();
 
 #define LWIP_DNS_SECURE 0
 
-#define MEM_SIZE 3200
+#define MEM_SIZE        3200
+#define TCP_MSS         1460
 
 #define CHECKSUM_GEN_IP 0
 #define CHECKSUM_GEN_UDP 0
